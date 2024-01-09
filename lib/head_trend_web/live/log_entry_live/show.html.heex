@@ -1,0 +1,36 @@
+<.header>
+  Log entry <%= @log_entry.id %>
+  <:subtitle>This is a log_entry record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/log_entries/#{@log_entry}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit log_entry</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Occurred on"><%= @log_entry.occurred_on %></:item>
+  <:item title="Headache"><%= @log_entry.headache %></:item>
+  <:item title="Fever"><%= @log_entry.fever %></:item>
+  <:item title="Pain reliever"><%= @log_entry.pain_reliever %></:item>
+  <:item title="Debilitating"><%= @log_entry.debilitating %></:item>
+  <:item title="Notes"><%= @log_entry.notes %></:item>
+</.list>
+
+<.back navigate={~p"/log_entries"}>Back to log_entries</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="log_entry-modal"
+  show
+  on_cancel={JS.patch(~p"/log_entries/#{@log_entry}")}
+>
+  <.live_component
+    module={HeadTrendWeb.LogEntryLive.FormComponent}
+    id={@log_entry.id}
+    title={@page_title}
+    action={@live_action}
+    log_entry={@log_entry}
+    patch={~p"/log_entries/#{@log_entry}"}
+  />
+</.modal>

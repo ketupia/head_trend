@@ -1,0 +1,139 @@
+<.header>
+  Listing Log entries
+  <:actions>
+    <.link patch={~p"/log_entries/new"}>
+      <.button>New Log entry</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<HeadTrendWeb.FunctionalLayoutComponents.auto_grid>
+  <span style="border: 1px solid black">Lorem ipsum dolor sit amet.</span>
+  <span style="border: 1px solid black">
+    Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis, incidunt?
+  </span>
+  <span style="border: 1px solid black">
+    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+  </span>
+  <span style="border: 1px solid black">Lorem.</span>
+  <span style="border: 1px solid black">Lorem ipsum dolor sit.</span>
+</HeadTrendWeb.FunctionalLayoutComponents.auto_grid>
+
+<div id="log entry cards">
+  <div
+    :for={{dom_id, log_entry} <- @streams.log_entries}
+    id={"#{dom_id}_card"}
+    class="rounded-lg shadow-lg border mt-2
+    hover:bg-brand/20 hover:cursor-pointer
+    md:hidden"
+    phx-click={JS.navigate(~p"/log_entries/#{log_entry}")}
+  >
+    <.list>
+      <:item title="Occurred On">
+        <%= log_entry.occurred_on %>
+      </:item>
+      <:item title="Occurred On">
+        <time
+          datetime={log_entry.occurred_on}
+          id={"#{dom_id}_card_occurred_on"}
+          phx-hook="ContentToLocalTime"
+        >
+        </time>
+      </:item>
+      <:item title="Headache"><%= if log_entry.headache, do: "Yes", else: "" %></:item>
+      <:item title="Fever"><%= if log_entry.fever, do: "Yes", else: "" %></:item>
+      <:item title="Pain reliever"><%= log_entry.pain_reliever %></:item>
+      <:item title="Debilitiating"><%= if log_entry.debilitating, do: "Yes", else: "" %></:item>
+      <:item title="Notes"><%= if !is_nil(log_entry.notes), do: "Yes", else: "" %></:item>
+    </.list>
+    <div class="m-2 p-2 flex gap-4 justify-end">
+      <div class="sr-only">
+        <.link navigate={~p"/log_entries/#{log_entry}"}>Show</.link>
+      </div>
+      <.link
+        patch={~p"/log_entries/#{log_entry}/edit"}
+        class="hover:text-brand hover:underline hover:underline-offset-4"
+      >
+        Edit
+      </.link>
+      <.link
+        phx-click={JS.push("delete", value: %{id: log_entry.id}) |> hide("##{dom_id}")}
+        data-confirm="Are you sure?"
+        class=" hover:text-brand hover:underline hover:underline-offset-4"
+      >
+        Delete
+      </.link>
+    </div>
+  </div>
+</div>
+
+<div class="max-md:hidden">
+  <.table
+    id="log_entries"
+    rows={@streams.log_entries}
+    row_click={fn {_id, log_entry} -> JS.navigate(~p"/log_entries/#{log_entry}") end}
+  >
+    <:col :let={{_id, log_entry}} label="Occurred on">
+      <%= log_entry.occurred_on %>
+    </:col>
+    <:col :let={{dom_id, log_entry}} label="Occurred On Local">
+      <time
+        datetime={log_entry.occurred_on}
+        id={"#{dom_id}_occurred_on"}
+        phx-hook="ContentToLocalTime"
+      >
+      </time>
+    </:col>
+
+    <:col :let={{_id, log_entry}} label="Headache">
+      <%= if log_entry.headache, do: "Yes", else: "" %>
+    </:col>
+    <:col :let={{_id, log_entry}} label="Fever">
+      <%= if log_entry.fever, do: "Yes", else: "" %>
+    </:col>
+    <:col :let={{_id, log_entry}} label="Pain reliever"><%= log_entry.pain_reliever %></:col>
+    <:col :let={{_id, log_entry}} label="Debilitating">
+      <%= if log_entry.debilitating, do: "Yes", else: "" %>
+    </:col>
+    <:col :let={{_id, log_entry}} label="Notes">
+      <%= if !is_nil(log_entry.notes), do: "Yes", else: "" %>
+    </:col>
+    <:action :let={{_id, log_entry}}>
+      <div class="sr-only">
+        <.link navigate={~p"/log_entries/#{log_entry}"}>Show</.link>
+      </div>
+      <.link
+        patch={~p"/log_entries/#{log_entry}/edit"}
+        class="hover:text-brand hover:underline hover:underline-offset-4"
+      >
+        Edit
+      </.link>
+    </:action>
+    <:action :let={{id, log_entry}}>
+      <.link
+        phx-click={JS.push("delete", value: %{id: log_entry.id}) |> hide("##{id}")}
+        data-confirm="Are you sure?"
+        class=" hover:text-brand hover:underline hover:underline-offset-4"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</div>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="log_entry-modal"
+  show
+  on_cancel={JS.patch(~p"/log_entries")}
+>
+  <.live_component
+    module={HeadTrendWeb.LogEntryLive.FormComponent}
+    id={@log_entry.id || :new}
+    title={@page_title}
+    action={@live_action}
+    log_entry={@log_entry}
+    current_user={@current_user}
+    patch={~p"/log_entries"}
+  />
+</.modal>

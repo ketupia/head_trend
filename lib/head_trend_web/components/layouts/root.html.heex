@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" class="[scrollbar-gutter:stable]">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title suffix=" · Phoenix Framework">
+      <%= assigns[:page_title] || "HeadTrend" %>
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+  </head>
+  <body class="bg-white antialiased m-2">
+    <div class="flex justify-between gap-4 items-center">
+      <a href="/" class="text-brand ">
+        <img src={~p"/images/hot_brain.png"} alt="logo" class="max-h-8 inline-block" /> Head Trend
+      </a>
+      <div class="flex justify-end gap-2
+      text-zinc-900 text-sm leading-6">
+        <%= if @current_user do %>
+          <.link
+            href={~p"/users/settings"}
+            class="hover:text-brand hover:underline hover:underline-offset-4"
+          >
+            <.icon name="hero-cog-8-tooth" class="h-4 w-4" />
+            <%= @current_user.email %>
+          </.link>
+          <.link
+            href={~p"/users/log_out"}
+            class="hover:text-brand hover:underline hover:underline-offset-4"
+            method="delete"
+          >
+            Log out
+          </.link>
+        <% else %>
+          <.link
+            href={~p"/users/register"}
+            class="hover:text-brand hover:underline hover:underline-offset-4"
+          >
+            Register
+          </.link>
+          <.link
+            href={~p"/users/log_in"}
+            class="hover:text-brand hover:underline hover:underline-offset-4"
+          >
+            Log in
+          </.link>
+        <% end %>
+      </div>
+    </div>
+
+    <%= @inner_content %>
+  </body>
+</html>
