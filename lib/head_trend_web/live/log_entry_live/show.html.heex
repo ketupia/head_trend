@@ -19,6 +19,13 @@
 
 <.back navigate={~p"/log_entries"}>Back to log_entries</.back>
 
+<%!-- <HeadTrendWeb.LogEntryLive.Index.log_entry_form_modal
+  log_entry={@log_entry}
+  page_title={@page_title}
+  current_user={@current_user}
+  live_action={@live_action}
+/> --%>
+
 <.modal
   :if={@live_action == :edit}
   id="log_entry-modal"
