@@ -10,10 +10,14 @@ defmodule HeadTrendWeb.LogEntryLive.Show do
 
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
+    log_entry =
+      Logs.get_log_entry!(id)
+      |> HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(:occurred_on, socket)
+
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:log_entry, Logs.get_log_entry!(id))}
+     |> assign(:log_entry, log_entry)}
   end
 
   defp page_title(:show), do: "Show Log entry"

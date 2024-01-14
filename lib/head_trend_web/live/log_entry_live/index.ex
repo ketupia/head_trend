@@ -1,4 +1,7 @@
 defmodule HeadTrendWeb.LogEntryLive.Index do
+  alias HeadTrendWeb.LogEntryLive.FormComponent.NotifyParentEvents.LogEntryCreated
+  alias HeadTrendWeb.LogEntryLive.FormComponent.NotifyParentEvents.LogEntryUpdated
+  alias HeadTrendWeb.LogEntryLive.FormComponent
   use HeadTrendWeb, :live_view
 
   alias HeadTrend.Logs
@@ -6,7 +9,15 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :log_entries, Logs.list_log_entries(socket.assigns.current_user.id))}
+    # IO.inspect(Map.get(socket.assigns, :timezone_offset), label: "MOUNT Timezone Offset")
+
+    log_entries =
+      Logs.list_log_entries(socket.assigns.current_user.id)
+      |> Enum.map(fn le ->
+        HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(le, :occurred_on, socket)
+      end)
+
+    {:ok, assign(socket, :log_entries, log_entries)}
   end
 
   @impl true
@@ -15,18 +26,26 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
+    log_entry =
+      Logs.get_log_entry!(id)
+      |> HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(:occurred_on, socket)
+
     socket
     |> assign(:page_title, "Edit Log entry")
-    |> assign(:log_entry, Logs.get_log_entry!(id))
+    |> assign(:log_entry, log_entry)
   end
 
   defp apply_action(socket, :new, _params) do
+    new_log_entry =
+      %LogEntry{
+        pain_reliever: "- none -",
+        occurred_on: DateTime.utc_now()
+      }
+      |> HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(:occurred_on, socket)
+
     socket
     |> assign(:page_title, "New Log entry")
-    |> assign(:log_entry, %LogEntry{
-      # occurred_on: DateTime.utc_now(),
-      pain_reliever: "- none -"
-    })
+    |> assign(:log_entry, new_log_entry)
   end
 
   defp apply_action(socket, :index, _params) do
@@ -36,8 +55,34 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   end
 
   @impl true
-  def handle_info({HeadTrendWeb.LogEntryLive.FormComponent, {:saved, log_entry}}, socket) do
+  def handle_info(
+        {FormComponent, %LogEntryCreated{log_entry: log_entry}},
+        socket
+      ) do
+    log_entry =
+      HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(log_entry, :occurred_on, socket)
+
     {:noreply, assign(socket, :log_entries, [log_entry | socket.assigns.log_entries])}
+  end
+
+  @impl true
+  def handle_info(
+        {FormComponent, %LogEntryUpdated{log_entry: log_entry}},
+        socket
+      ) do
+    log_entry =
+      HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(log_entry, :occurred_on, socket)
+
+    log_entries =
+      case Enum.find_index(socket.assigns.log_entries, fn x ->
+             x.id == log_entry.id
+           end) do
+        # not being displayed, so no need to update
+        nil -> socket.assigns.log_entries
+        index -> List.replace_at(socket.assigns.log_entries, index, log_entry)
+      end
+
+    {:noreply, assign(socket, :log_entries, log_entries)}
   end
 
   @impl true

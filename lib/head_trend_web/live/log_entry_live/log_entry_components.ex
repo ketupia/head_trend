@@ -37,12 +37,7 @@ defmodule HeadTrendWeb.LogEntryLive.LogEntryComponents do
         </:item>
         
         <:item title="Occurred On">
-          <time
-            datetime={@log_entry.occurred_on}
-            id={"#{@log_entry.id}_card_occurred_on"}
-            phx-hook="ContentToLocalTime"
-          >
-          </time>
+          <time datetime={@log_entry.occurred_on} id={"#{@log_entry.id}_card_occurred_on"}></time>
         </:item>
         
         <:item title="Headache"><%= if @log_entry.headache, do: "Yes", else: "" %></:item>
@@ -100,12 +95,7 @@ defmodule HeadTrendWeb.LogEntryLive.LogEntryComponents do
         </:col>
         
         <:col :let={log_entry} label="Occurred On Local">
-          <time
-            datetime={log_entry.occurred_on}
-            id={"#{log_entry.id}_occurred_on"}
-            phx-hook="ContentToLocalTime"
-          >
-          </time>
+          <time datetime={log_entry.occurred_on} id={"#{log_entry.id}_occurred_on"}></time>
         </:col>
         
         <:col :let={log_entry} label="Headache">
