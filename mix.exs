@@ -52,7 +52,8 @@ defmodule HeadTrend.MixProject do
       {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      {:typedstruct, "~> 0.5.2"}
+      {:typedstruct, "~> 0.5.2"},
+      {:tzdata, "~> 1.1"}
     ]
   end
 

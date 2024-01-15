@@ -28,8 +28,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: {
     _csrf_token: csrfToken,
     // locale: Intl.NumberFormat().resolvedOptions().locale,
-    // timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    timezone_offset: -(new Date().getTimezoneOffset())
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    // timezone_offset: -(new Date().getTimezoneOffset())
   },
   hooks: Hooks,
 });

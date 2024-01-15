@@ -3,15 +3,18 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
 
   alias HeadTrend.Logs
   alias HeadTrend.Logs.LogEntry
+  alias HeadTrendWeb.LogEntryLive.TimezoneAdjustments
 
   @impl true
   def mount(_params, _session, socket) do
-    # IO.inspect(Map.get(socket.assigns, :timezone_offset), label: "MOUNT Timezone Offset")
-
     log_entries =
       Logs.list_log_entries(socket.assigns.current_user.id)
       |> Enum.map(fn le ->
-        HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(le, :occurred_on, socket)
+        Map.update!(le, :occurred_on, fn dt ->
+          dt
+          |> DateTime.shift_zone!(socket.assigns.timezone)
+          |> TimezoneAdjustments.format_for_display()
+        end)
       end)
 
     {:ok, assign(socket, :log_entries, log_entries)}
@@ -25,7 +28,9 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     log_entry =
       Logs.get_log_entry!(id)
-      |> HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(:occurred_on, socket)
+      |> Map.update!(:occurred_on, fn dt ->
+        DateTime.shift_zone!(dt, socket.assigns.timezone)
+      end)
 
     socket
     |> assign(:page_title, "Edit Log entry")
@@ -36,9 +41,10 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
     new_log_entry =
       %LogEntry{
         pain_reliever: "- none -",
-        occurred_on: DateTime.utc_now()
+        occurred_on:
+          DateTime.utc_now()
+          |> DateTime.shift_zone!(socket.assigns.timezone)
       }
-      |> HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(:occurred_on, socket)
 
     socket
     |> assign(:page_title, "New Log entry")
@@ -71,7 +77,11 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
         socket
       ) do
     log_entry =
-      HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(log_entry, :occurred_on, socket)
+      Map.update!(log_entry, :occurred_on, fn dt ->
+        dt
+        |> DateTime.shift_zone!(socket.assigns.timezone)
+        |> TimezoneAdjustments.format_for_display()
+      end)
 
     assign(socket, :log_entries, [log_entry | socket.assigns.log_entries])
   end
@@ -81,16 +91,23 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
         log_entry,
         socket
       ) do
-    log_entry =
-      HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(log_entry, :occurred_on, socket)
-
     log_entries =
       case Enum.find_index(socket.assigns.log_entries, fn x ->
              x.id == log_entry.id
            end) do
-        # not being displayed, so no need to update
-        nil -> socket.assigns.log_entries
-        index -> List.replace_at(socket.assigns.log_entries, index, log_entry)
+        # not being displayed, so no need to update and show it!?!
+        nil ->
+          socket.assigns.log_entries
+
+        index ->
+          log_entry =
+            Map.update!(log_entry, :occurred_on, fn dt ->
+              dt
+              |> DateTime.shift_zone!(socket.assigns.timezone)
+              |> TimezoneAdjustments.format_for_display()
+            end)
+
+          List.replace_at(socket.assigns.log_entries, index, log_entry)
       end
 
     assign(socket, :log_entries, log_entries)
@@ -137,6 +154,7 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
         action={@live_action}
         log_entry={@log_entry}
         current_user={@current_user}
+        timezone={@timezone}
         patch={~p"/log_entries"}
       />
     </.modal>

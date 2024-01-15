@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
-        "typedstruct"
+        "strftime",
+        "typedstruct",
+        "Tzdata"
     ],
     "cSpell.ignoreWords": [
         "FunctionalLayoutComponents",

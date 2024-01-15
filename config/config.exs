@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 config :head_trend,
   ecto_repos: [HeadTrend.Repo],
   generators: [timestamp_type: :utc_datetime]

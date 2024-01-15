@@ -1,4 +1,5 @@
 defmodule HeadTrendWeb.LogEntryLive.FormComponent do
+  alias HeadTrendWeb.LogEntryLive.TimezoneAdjustments
   use HeadTrendWeb, :live_component
 
   alias HeadTrend.Logs
@@ -65,18 +66,12 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
   alias HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgPayloadFactory
 
   defp save_log_entry(socket, :edit, log_entry_params) do
-    # IO.inspect(log_entry_params, label: "FORM EDIT Save log_entry")
+    log_entry_params =
+      Map.update!(log_entry_params, "occurred_on", fn x ->
+        TimezoneAdjustments.parse_from_input(x, socket.assigns.timezone)
+      end)
 
-    utc_params =
-      HeadTrendWeb.LogEntryLive.TimezoneAdjustments.local_to_utc(
-        log_entry_params,
-        "occurred_on",
-        socket
-      )
-
-    # IO.inspect(utc_params, label: "FORM EDIT Save utc_params")
-
-    case Logs.update_log_entry(socket.assigns.log_entry, utc_params) do
+    case Logs.update_log_entry(socket.assigns.log_entry, log_entry_params) do
       {:ok, log_entry} ->
         notify_parent(MsgPayloadFactory.log_entry_updated(log_entry))
 
@@ -91,21 +86,17 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
   end
 
   defp save_log_entry(socket, :new, log_entry_params) do
-    # IO.inspect(log_entry_params, label: "FORM NEW Save log_entry")
-
     case log_entry_params
+         |> Map.update!("occurred_on", fn x ->
+           TimezoneAdjustments.parse_from_input(x, socket.assigns.timezone)
+         end)
          |> Map.put("user_id", socket.assigns.current_user.id)
-         |> HeadTrendWeb.LogEntryLive.TimezoneAdjustments.local_to_utc(
-           "occurred_on",
-           socket
-         )
          |> Logs.create_log_entry() do
       {:ok, log_entry} ->
         notify_parent(MsgPayloadFactory.log_entry_created(log_entry))
 
         {:noreply,
          socket
-         #  |> put_flash(:info, "Log entry created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
