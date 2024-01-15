@@ -2,8 +2,6 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
   use HeadTrendWeb, :live_component
 
   alias HeadTrend.Logs
-  alias HeadTrendWeb.LogEntryLive.FormComponent.NotifyParentEvents.LogEntryCreated
-  alias HeadTrendWeb.LogEntryLive.FormComponent.NotifyParentEvents.LogEntryUpdated
 
   @impl true
   def render(assigns) do
@@ -64,6 +62,8 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
     save_log_entry(socket, socket.assigns.action, log_entry_params)
   end
 
+  alias HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgPayloadFactory
+
   defp save_log_entry(socket, :edit, log_entry_params) do
     # IO.inspect(log_entry_params, label: "FORM EDIT Save log_entry")
 
@@ -78,7 +78,7 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
 
     case Logs.update_log_entry(socket.assigns.log_entry, utc_params) do
       {:ok, log_entry} ->
-        notify_parent(LogEntryUpdated.new(log_entry))
+        notify_parent(MsgPayloadFactory.log_entry_updated(log_entry))
 
         {:noreply,
          socket
@@ -101,7 +101,7 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
          )
          |> Logs.create_log_entry() do
       {:ok, log_entry} ->
-        notify_parent(LogEntryCreated.new(log_entry))
+        notify_parent(MsgPayloadFactory.log_entry_created(log_entry))
 
         {:noreply,
          socket

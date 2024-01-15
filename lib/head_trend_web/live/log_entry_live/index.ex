@@ -1,7 +1,4 @@
 defmodule HeadTrendWeb.LogEntryLive.Index do
-  alias HeadTrendWeb.LogEntryLive.FormComponent.NotifyParentEvents.LogEntryCreated
-  alias HeadTrendWeb.LogEntryLive.FormComponent.NotifyParentEvents.LogEntryUpdated
-  alias HeadTrendWeb.LogEntryLive.FormComponent
   use HeadTrendWeb, :live_view
 
   alias HeadTrend.Logs
@@ -55,19 +52,33 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   end
 
   @impl true
-  def handle_info(
-        {FormComponent, %LogEntryCreated{log_entry: log_entry}},
+  def handle_info(msg, socket) do
+    {_handled, socket} =
+      HeadTrendWeb.LogEntryLive.FormComponentMessaging.HandleInfoAdapter.handle_info(
+        msg,
+        socket,
+        __MODULE__
+      )
+
+    {:noreply, socket}
+  end
+
+  @behaviour HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgReceiver
+
+  @impl HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgReceiver
+  def log_entry_created(
+        log_entry,
         socket
       ) do
     log_entry =
       HeadTrendWeb.LogEntryLive.TimezoneAdjustments.utc_to_local(log_entry, :occurred_on, socket)
 
-    {:noreply, assign(socket, :log_entries, [log_entry | socket.assigns.log_entries])}
+    assign(socket, :log_entries, [log_entry | socket.assigns.log_entries])
   end
 
-  @impl true
-  def handle_info(
-        {FormComponent, %LogEntryUpdated{log_entry: log_entry}},
+  @impl HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgReceiver
+  def log_entry_updated(
+        log_entry,
         socket
       ) do
     log_entry =
@@ -82,7 +93,7 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
         index -> List.replace_at(socket.assigns.log_entries, index, log_entry)
       end
 
-    {:noreply, assign(socket, :log_entries, log_entries)}
+    assign(socket, :log_entries, log_entries)
   end
 
   @impl true
