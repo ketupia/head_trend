@@ -94,10 +94,6 @@ defmodule HeadTrendWeb.LogEntryLive.LogEntryComponents do
           <%= log_entry.occurred_on %>
         </:col>
         
-        <:col :let={log_entry} label="Occurred On Local">
-          <time datetime={log_entry.occurred_on} id={"#{log_entry.id}_occurred_on"}></time>
-        </:col>
-        
         <:col :let={log_entry} label="Headache">
           <%= if log_entry.headache, do: "Yes", else: "" %>
         </:col>
