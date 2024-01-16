@@ -21,7 +21,7 @@ defmodule HeadTrend.Logs do
     Repo.all(
       from le in LogEntry,
         where: le.user_id == ^user_id,
-        order_by: [desc: le.id]
+        order_by: [desc: le.occurred_on]
     )
   end
 

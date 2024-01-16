@@ -16,10 +16,27 @@ defmodule HeadTrendWeb.LogEntryLive.TimezoneAdjustments do
 
     format =
       case years do
-        0 -> "%a %b %_d, %_I:%M %p"
-        _ -> "%a %b %_d, %Y %_I:%M %p"
+        0 -> "%a %b %_d, %_I:%M %P"
+        _ -> "%a %b %_d, %Y %_I:%M %P"
       end
 
     Calendar.strftime(dt, format)
+  end
+
+  def format_for_display(%Date{} = d) do
+    diff = Date.diff(Date.utc_today(), d)
+    years = div(diff, 365)
+
+    format =
+      case years do
+        0 -> "%a %b %_d"
+        _ -> "%a %b %_d, %Y"
+      end
+
+    Calendar.strftime(d, format)
+  end
+
+  def format_for_display(%Time{} = t) do
+    Calendar.strftime(t, "%_I:%M %P")
   end
 end

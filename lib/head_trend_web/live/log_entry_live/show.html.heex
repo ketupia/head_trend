@@ -3,13 +3,24 @@
   <:subtitle>This is a log_entry record from your database.</:subtitle>
   <:actions>
     <.link patch={~p"/log_entries/#{@log_entry}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit log_entry</.button>
+      <.button>Edit</.button>
+    </.link>
+    <.link
+      phx-click={JS.push("delete", value: %{id: @log_entry.id})}
+      data-confirm="Are you sure?"
+      class=" hover:text-brand hover:underline hover:underline-offset-4"
+    >
+      Delete
     </.link>
   </:actions>
 </.header>
 
 <.list>
-  <:item title="Occurred on"><%= @log_entry.occurred_on %></:item>
+  <:item title="Occurred on">
+    <time datetime={@log_entry.occurred_on}>
+      <%= HeadTrendWeb.LogEntryLive.TimezoneAdjustments.format_for_display(@log_entry.occurred_on) %>
+    </time>
+  </:item>
   <:item title="Headache"><%= @log_entry.headache %></:item>
   <:item title="Fever"><%= @log_entry.fever %></:item>
   <:item title="Pain reliever"><%= @log_entry.pain_reliever %></:item>

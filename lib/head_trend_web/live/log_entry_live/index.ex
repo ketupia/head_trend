@@ -3,7 +3,6 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
 
   alias HeadTrend.Logs
   alias HeadTrend.Logs.LogEntry
-  alias HeadTrendWeb.LogEntryLive.TimezoneAdjustments
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +12,6 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
         Map.update!(le, :occurred_on, fn dt ->
           dt
           |> DateTime.shift_zone!(socket.assigns.timezone)
-          |> TimezoneAdjustments.format_for_display()
         end)
       end)
 
@@ -80,7 +78,6 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
       Map.update!(log_entry, :occurred_on, fn dt ->
         dt
         |> DateTime.shift_zone!(socket.assigns.timezone)
-        |> TimezoneAdjustments.format_for_display()
       end)
 
     assign(socket, :log_entries, [log_entry | socket.assigns.log_entries])
@@ -104,7 +101,6 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
             Map.update!(log_entry, :occurred_on, fn dt ->
               dt
               |> DateTime.shift_zone!(socket.assigns.timezone)
-              |> TimezoneAdjustments.format_for_display()
             end)
 
           List.replace_at(socket.assigns.log_entries, index, log_entry)
