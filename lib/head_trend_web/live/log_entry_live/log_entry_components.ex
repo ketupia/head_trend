@@ -145,102 +145,115 @@ defmodule HeadTrendWeb.LogEntryLive.LogEntryComponents do
     """
   end
 
+  attr :id, :string, default: "log_entries_journal"
   attr :log_entries, :list, required: true
   attr :class, :string, default: nil
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the container"
 
   def log_entries_journal(assigns) do
+    min_max_dates =
+      assigns.log_entries
+      |> Enum.map(fn le -> DateTime.to_date(le.occurred_on) end)
+      |> Enum.min_max(fn -> {Date.utc_today(), Date.utc_today()} end)
+
+    date_range =
+      Date.range(elem(min_max_dates, 0), elem(min_max_dates, 1))
+
+    # IO.inspect(date_range, label: "date_range")
+    # for d <- date_range do
+    #   IO.inspect(d)
+    # end
+
     log_entries_by_date =
       Enum.map(assigns.log_entries, fn le ->
         {DateTime.to_date(le.occurred_on), DateTime.to_time(le.occurred_on), le}
       end)
       |> Enum.group_by(&elem(&1, 0))
-      |> Enum.to_list()
-      |> Enum.sort_by(&elem(&1, 0), :desc)
 
     # IO.inspect(log_entries_by_date, label: "log_entries_by_date")
 
     assigns =
-      assign(
-        assigns,
-        :log_entries_by_date,
-        log_entries_by_date
-      )
+      assigns
+      |> assign(:log_entries_by_date, log_entries_by_date)
+      |> assign(:date_range, date_range)
 
     ~H"""
-    <div id="log_entries_journal" class={["border inline-block", @class]} {@rest}>
+    <div id={@id} class={["border inline-block", @class]} {@rest}>
       <h2 class="bold underline underline-offset-2">Journal</h2>
       
-      <div :for={{date, tuple_list} <- assigns.log_entries_by_date}>
+      <div :for={date <- Enum.reverse(assigns.date_range)} id={"#{@id}_#{date}"}>
         <h3 class="bg-slate-300"><time><%= TimezoneAdjustments.format_for_display(date) %></time></h3>
         
-        <div :for={{_date, time, %LogEntry{} = log_entry} <- Enum.sort_by(tuple_list, &elem(&1, 1))}>
-          <div
-            class="grid gap-1 grid-cols-2 hover:bg-brand/20"
-            phx-click={JS.navigate(~p"/log_entries/#{log_entry}")}
-          >
-            <div>
-              <time><%= TimezoneAdjustments.format_for_display(time) %></time>
-            </div>
+        <div
+          :for={
+            {_date, time, %LogEntry{} = log_entry} <-
+              Map.get(assigns.log_entries_by_date, date, []) |> Enum.sort_by(&elem(&1, 1))
+          }
+          id={"#{@id}_log_entry_#{log_entry.id}"}
+          class="grid gap-1 grid-cols-2 hover:bg-brand/20"
+          phx-click={JS.navigate(~p"/log_entries/#{log_entry}")}
+        >
+          <div class="justify-self-end">
+            <time><%= TimezoneAdjustments.format_for_display(time) %></time>
+          </div>
+          
+          <div class="grid gap-1 grid-cols-5 content-center">
+            <span>
+              <img
+                :if={log_entry.headache}
+                src="/images/headache-illustration-2-svgrepo-com.svg"
+                alt=""
+                class="h-4 w-4"
+                title="Headache"
+              />
+            </span>
             
-            <div class="grid gap-1 grid-cols-5 content-center">
-              <span>
-                <img
-                  :if={log_entry.headache}
-                  src="/images/headache-illustration-2-svgrepo-com.svg"
-                  alt=""
-                  class="h-3 w-3"
-                  title="Headache"
-                />
-              </span>
-              
-              <span>
-                <img
-                  :if={log_entry.fever}
-                  src="/images/fever-svgrepo-com.svg"
-                  alt=""
-                  class="h-3 w-3"
-                  title="Fever"
-                />
-              </span>
-              
-              <span>
-                <img
-                  :if={log_entry.pain_reliever == "acetaminophen"}
-                  src="/images/medicine-10-svgrepo-com.svg"
-                  alt=""
-                  class="h-3 w-3"
-                  title="Acetaminophen"
-                />
-                <img
-                  :if={log_entry.pain_reliever == "ibuprofen"}
-                  src="/images/medicine-illustration-8-svgrepo-com.svg"
-                  alt=""
-                  class="h-3 w-3"
-                  title="Ibuprofen"
-                />
-              </span>
-              
-              <span>
-                <img
-                  :if={log_entry.debilitating}
-                  src="/images/bed-svgrepo-com.svg"
-                  alt=""
-                  class="h-3 w-3"
-                  title="Debilitating"
-                />
-              </span>
-              
-              <span>
-                <img
-                  :if={log_entry.notes}
-                  src="/images/notes-svgrepo-com.svg"
-                  alt=""
-                  class="h-3 w-3"
-                  title={log_entry.notes}
-                />
-              </span>
-            </div>
+            <span>
+              <img
+                :if={log_entry.fever}
+                src="/images/fever-svgrepo-com.svg"
+                alt=""
+                class="h-4 w-4"
+                title="Fever"
+              />
+            </span>
+            
+            <span>
+              <img
+                :if={log_entry.pain_reliever == "acetaminophen"}
+                src="/images/medicine-10-svgrepo-com.svg"
+                alt=""
+                class="h-4 w-4"
+                title="Acetaminophen"
+              />
+              <img
+                :if={log_entry.pain_reliever == "ibuprofen"}
+                src="/images/medicine-illustration-8-svgrepo-com.svg"
+                alt=""
+                class="h-4 w-4"
+                title="Ibuprofen"
+              />
+            </span>
+            
+            <span>
+              <img
+                :if={log_entry.debilitating}
+                src="/images/bed-svgrepo-com.svg"
+                alt=""
+                class="h-4 w-4"
+                title="Debilitating"
+              />
+            </span>
+            
+            <span>
+              <img
+                :if={log_entry.notes}
+                src="/images/notes-svgrepo-com.svg"
+                alt=""
+                class="h-4 w-4"
+                title={log_entry.notes}
+              />
+            </span>
           </div>
         </div>
       </div>
