@@ -1,5 +1,5 @@
 defmodule HeadTrendWeb.LogEntryLive.LogEntryComponents do
-  use HeadTrendWeb, :live_component
+  use HeadTrendWeb, :html
 
   alias HeadTrend.Logs.LogEntry
   alias HeadTrendWeb.LogEntryLive.TimezoneAdjustments

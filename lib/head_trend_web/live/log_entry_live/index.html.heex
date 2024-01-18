@@ -16,7 +16,12 @@
   <span style="border: 1px solid black">Lorem.</span>
   <span style="border: 1px solid black">Lorem ipsum dolor sit.</span>
 </HeadTrendWeb.FunctionalLayoutComponents.auto_grid> --%>
-<HeadTrendWeb.LogEntryLive.LogEntryComponents.log_entries_journal log_entries={@log_entries} />
+<.live_component
+  module={HeadTrendWeb.LogEntryLive.JournalComponent}
+  id={"journal_for_user_#{@current_user.id}"}
+  log_entries={@log_entries}
+/>
+<%!-- <HeadTrendWeb.LogEntryLive.LogEntryComponents.log_entries_journal log_entries={@log_entries} />
 <HeadTrendWeb.LogEntryLive.LogEntryComponents.log_entries_cards
   log_entries={@log_entries}
   class="md:hidden"
@@ -24,7 +29,7 @@
 <HeadTrendWeb.LogEntryLive.LogEntryComponents.log_entries_table
   log_entries={@log_entries}
   class="hidden md:block"
-/>
+/> --%>
 <.modal
   :if={@live_action in [:new, :edit]}
   id="log_entry-modal"
