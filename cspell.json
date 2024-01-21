@@ -4,7 +4,7 @@
     "dictionaryDefinitions": [],
     "dictionaries": [],
     "words": [
-        "svgrepo"
+        "svgrepo", "outdir"
     ],
     "ignoreWords": [
         "FunctionalLayoutComponents",

@@ -17,7 +17,9 @@ defmodule HeadTrend.Application do
       # Start a worker by calling: HeadTrend.Worker.start_link(arg)
       # {HeadTrend.Worker, arg},
       # Start to serve requests, typically the last entry
-      HeadTrendWeb.Endpoint
+      HeadTrendWeb.Endpoint,
+      {Registry, name: HeadTrend.UserLogRegistry, keys: :unique},
+      {DynamicSupervisor, name: HeadTrend.UserLogSupervisor, strategy: :one_for_one}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

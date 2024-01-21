@@ -1,11 +1,15 @@
 defmodule HeadTrendWeb.LogEntryLive.Index do
   use HeadTrendWeb, :live_view
 
+  alias HeadTrend.UserLogGenServer
   alias HeadTrend.Logs
   alias HeadTrend.Logs.LogEntry
 
   @impl true
   def mount(_params, _session, socket) do
+    # UserLogGenServer.get_or_start(socket.assigns.current_user.id)
+
+    # UserLogGenServer.get_log_entries(socket.assigns.current_user.id)
     log_entries =
       Logs.list_log_entries(socket.assigns.current_user.id)
       |> Enum.map(fn le ->
