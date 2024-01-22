@@ -63,7 +63,15 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
     save_log_entry(socket, socket.assigns.action, log_entry_params)
   end
 
-  alias HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgPayloadFactory
+  use TypedStruct
+
+  typedstruct module: LogEntryCreated, enforce: true do
+    field :log_entry, HeadTrend.Logs.LogEntry.t()
+  end
+
+  typedstruct module: LogEntryUpdated, enforce: true do
+    field :log_entry, HeadTrend.Logs.LogEntry.t()
+  end
 
   defp save_log_entry(socket, :edit, log_entry_params) do
     log_entry_params =
@@ -73,7 +81,9 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
 
     case Logs.update_log_entry(socket.assigns.log_entry, log_entry_params) do
       {:ok, log_entry} ->
-        notify_parent(MsgPayloadFactory.log_entry_updated(log_entry))
+        notify_parent(%HeadTrendWeb.LogEntryLive.FormComponent.LogEntryUpdated{
+          log_entry: log_entry
+        })
 
         {:noreply,
          socket
@@ -93,7 +103,9 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
          |> Map.put("user_id", socket.assigns.current_user.id)
          |> Logs.create_log_entry() do
       {:ok, log_entry} ->
-        notify_parent(MsgPayloadFactory.log_entry_created(log_entry))
+        notify_parent(%HeadTrendWeb.LogEntryLive.FormComponent.LogEntryCreated{
+          log_entry: log_entry
+        })
 
         {:noreply,
          socket

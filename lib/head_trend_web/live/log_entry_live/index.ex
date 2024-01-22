@@ -1,7 +1,10 @@
 defmodule HeadTrendWeb.LogEntryLive.Index do
+  alias HeadTrendWeb.LogEntryLive.FormComponent
+  alias HeadTrendWeb.LogEntryLive.FormComponent.LogEntryUpdated
+  alias HeadTrendWeb.LogEntryLive.FormComponent.LogEntryCreated
   use HeadTrendWeb, :live_view
 
-  alias HeadTrend.UserLogGenServer
+  # alias HeadTrend.UserLogGenServer
   alias HeadTrend.Logs
   alias HeadTrend.Logs.LogEntry
 
@@ -60,38 +63,31 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   end
 
   @impl true
-  def handle_info(msg, socket) do
-    {_handled, socket} =
-      HeadTrendWeb.LogEntryLive.FormComponentMessaging.HandleInfoAdapter.handle_info(
-        msg,
-        socket,
-        __MODULE__
-      )
+  def handle_event("delete", %{"id" => id}, socket) do
+    log_entry = Logs.get_log_entry!(id)
+    {:ok, _} = Logs.delete_log_entry(log_entry)
 
-    {:noreply, socket}
+    {:noreply,
+     assign(
+       socket,
+       :log_entries,
+       Enum.reject(socket.assigns.log_entries, fn x -> x.id == log_entry.id end)
+     )}
   end
 
-  @behaviour HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgReceiver
-
-  @impl HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgReceiver
-  def log_entry_created(
-        log_entry,
-        socket
-      ) do
+  @impl true
+  def handle_info({FormComponent, %LogEntryCreated{log_entry: log_entry}}, socket) do
     log_entry =
       Map.update!(log_entry, :occurred_on, fn dt ->
         dt
         |> DateTime.shift_zone!(socket.assigns.timezone)
       end)
 
-    assign(socket, :log_entries, [log_entry | socket.assigns.log_entries])
+    {:noreply, assign(socket, :log_entries, [log_entry | socket.assigns.log_entries])}
   end
 
-  @impl HeadTrendWeb.LogEntryLive.FormComponentMessaging.MsgReceiver
-  def log_entry_updated(
-        log_entry,
-        socket
-      ) do
+  @impl true
+  def handle_info({FormComponent, %LogEntryUpdated{log_entry: log_entry}}, socket) do
     log_entries =
       case Enum.find_index(socket.assigns.log_entries, fn x ->
              x.id == log_entry.id
@@ -110,20 +106,12 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
           List.replace_at(socket.assigns.log_entries, index, log_entry)
       end
 
-    assign(socket, :log_entries, log_entries)
+    {:noreply, assign(socket, :log_entries, log_entries)}
   end
 
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    log_entry = Logs.get_log_entry!(id)
-    {:ok, _} = Logs.delete_log_entry(log_entry)
-
-    {:noreply,
-     assign(
-       socket,
-       :log_entries,
-       Enum.reject(socket.assigns.log_entries, fn x -> x.id == log_entry.id end)
-     )}
+  def handle_info(msg, socket) do
+    IO.inspect(msg, label: "Unhandled msg")
+    {:noreply, socket}
   end
 
   def new_log_entry_button(assigns) do
