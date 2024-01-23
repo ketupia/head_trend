@@ -1,4 +1,5 @@
 defmodule HeadTrendWeb.LogEntryLive.FormComponent do
+  alias HeadTrend.UserLogGenServer
   alias HeadTrendWeb.LogEntryLive.TimezoneAdjustments
   use HeadTrendWeb, :live_component
 
@@ -63,28 +64,14 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
     save_log_entry(socket, socket.assigns.action, log_entry_params)
   end
 
-  use TypedStruct
-
-  typedstruct module: LogEntryCreated, enforce: true do
-    field :log_entry, HeadTrend.Logs.LogEntry.t()
-  end
-
-  typedstruct module: LogEntryUpdated, enforce: true do
-    field :log_entry, HeadTrend.Logs.LogEntry.t()
-  end
-
   defp save_log_entry(socket, :edit, log_entry_params) do
     log_entry_params =
       Map.update!(log_entry_params, "occurred_on", fn x ->
         TimezoneAdjustments.parse_from_input(x, socket.assigns.timezone)
       end)
 
-    case Logs.update_log_entry(socket.assigns.log_entry, log_entry_params) do
-      {:ok, log_entry} ->
-        notify_parent(%HeadTrendWeb.LogEntryLive.FormComponent.LogEntryUpdated{
-          log_entry: log_entry
-        })
-
+    case UserLogGenServer.update_log_entry(socket.assigns.log_entry, log_entry_params) do
+      {:ok, _log_entry} ->
         {:noreply,
          socket
          #  |> put_flash(:info, "Log entry updated successfully")
@@ -101,12 +88,8 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
            TimezoneAdjustments.parse_from_input(x, socket.assigns.timezone)
          end)
          |> Map.put("user_id", socket.assigns.current_user.id)
-         |> Logs.create_log_entry() do
-      {:ok, log_entry} ->
-        notify_parent(%HeadTrendWeb.LogEntryLive.FormComponent.LogEntryCreated{
-          log_entry: log_entry
-        })
-
+         |> UserLogGenServer.create_log_entry() do
+      {:ok, _log_entry} ->
         {:noreply,
          socket
          |> push_patch(to: socket.assigns.patch)}
@@ -119,6 +102,4 @@ defmodule HeadTrendWeb.LogEntryLive.FormComponent do
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

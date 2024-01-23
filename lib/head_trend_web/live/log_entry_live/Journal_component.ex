@@ -5,7 +5,7 @@ defmodule HeadTrendWeb.LogEntryLive.JournalComponent do
   alias HeadTrend.Logs.LogEntry
 
   def mount(socket) do
-    {:ok, socket |> assign_new(:show_dates_without_log_entries, fn -> true end)}
+    {:ok, socket |> assign_new(:show_dates_without_log_entries, fn -> false end)}
   end
 
   def update(assigns, socket) do

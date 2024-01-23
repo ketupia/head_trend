@@ -1,20 +1,18 @@
 defmodule HeadTrendWeb.LogEntryLive.Index do
-  alias HeadTrendWeb.LogEntryLive.FormComponent
-  alias HeadTrendWeb.LogEntryLive.FormComponent.LogEntryUpdated
-  alias HeadTrendWeb.LogEntryLive.FormComponent.LogEntryCreated
+  alias HeadTrend.UserLogGenServer
+  alias HeadTrend.UserLogPubSub
   use HeadTrendWeb, :live_view
 
-  # alias HeadTrend.UserLogGenServer
-  alias HeadTrend.Logs
   alias HeadTrend.Logs.LogEntry
 
   @impl true
   def mount(_params, _session, socket) do
     # UserLogGenServer.get_or_start(socket.assigns.current_user.id)
 
-    # UserLogGenServer.get_log_entries(socket.assigns.current_user.id)
+    if connected?(socket), do: UserLogPubSub.subscribe(socket.assigns.current_user.id)
+
     log_entries =
-      Logs.list_log_entries(socket.assigns.current_user.id)
+      UserLogGenServer.get_log_entries(socket.assigns.current_user.id)
       |> Enum.map(fn le ->
         Map.update!(le, :occurred_on, fn dt ->
           dt
@@ -28,18 +26,6 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    log_entry =
-      Logs.get_log_entry!(id)
-      |> Map.update!(:occurred_on, fn dt ->
-        DateTime.shift_zone!(dt, socket.assigns.timezone)
-      end)
-
-    socket
-    |> assign(:page_title, "Edit Log entry")
-    |> assign(:log_entry, log_entry)
   end
 
   defp apply_action(socket, :new, _params) do
@@ -62,21 +48,21 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
     |> assign(:log_entry, nil)
   end
 
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    log_entry = Logs.get_log_entry!(id)
-    {:ok, _} = Logs.delete_log_entry(log_entry)
+  # @impl true
+  # def handle_event("delete", %{"id" => id}, socket) do
+  #   log_entry = Logs.get_log_entry!(id)
+  #   {:ok, _} = Logs.delete_log_entry(log_entry)
 
-    {:noreply,
-     assign(
-       socket,
-       :log_entries,
-       Enum.reject(socket.assigns.log_entries, fn x -> x.id == log_entry.id end)
-     )}
-  end
+  #   {:noreply,
+  #    assign(
+  #      socket,
+  #      :log_entries,
+  #      Enum.reject(socket.assigns.log_entries, fn x -> x.id == log_entry.id end)
+  #    )}
+  # end
 
   @impl true
-  def handle_info({FormComponent, %LogEntryCreated{log_entry: log_entry}}, socket) do
+  def handle_info(%HeadTrend.UserLogPubSub.LogEntryCreated{log_entry: log_entry}, socket) do
     log_entry =
       Map.update!(log_entry, :occurred_on, fn dt ->
         dt
@@ -87,7 +73,7 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   end
 
   @impl true
-  def handle_info({FormComponent, %LogEntryUpdated{log_entry: log_entry}}, socket) do
+  def handle_info(%HeadTrend.UserLogPubSub.LogEntryUpdated{log_entry: log_entry}, socket) do
     log_entries =
       case Enum.find_index(socket.assigns.log_entries, fn x ->
              x.id == log_entry.id
@@ -109,17 +95,18 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
     {:noreply, assign(socket, :log_entries, log_entries)}
   end
 
+  @impl true
+  def handle_info(%HeadTrend.UserLogPubSub.LogEntryDeleted{log_entry: log_entry}, socket) do
+    updated_log_entries =
+      Enum.reject(socket.assigns.log_entries, fn le -> le.id == log_entry.id end)
+
+    {:noreply, assign(socket, :log_entries, updated_log_entries)}
+  end
+
+  @impl true
   def handle_info(msg, socket) do
     IO.inspect(msg, label: "Unhandled msg")
     {:noreply, socket}
-  end
-
-  def new_log_entry_button(assigns) do
-    ~H"""
-    <.link patch={~p"/log_entries/new"}>
-      <.button>New Log entry</.button>
-    </.link>
-    """
   end
 
   attr :log_entry, HeadTrend.Logs.LogEntry, required: true
@@ -130,7 +117,7 @@ defmodule HeadTrendWeb.LogEntryLive.Index do
   def log_entry_form_modal(assigns) do
     ~H"""
     <.modal
-      :if={@live_action in [:new, :edit]}
+      :if={@live_action in [:new]}
       id="log_entry-modal"
       show
       on_cancel={JS.patch(~p"/log_entries")}

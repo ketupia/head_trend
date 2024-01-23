@@ -1,7 +1,9 @@
 <.header>
   Listing Log entries
   <:actions>
-    <HeadTrendWeb.LogEntryLive.Index.new_log_entry_button />
+    <.link patch={~p"/log_entries/new"}>
+      <.button>New Log entry</.button>
+    </.link>
   </:actions>
 </.header>
 
@@ -31,7 +33,7 @@
   class="hidden md:block"
 /> --%>
 <.modal
-  :if={@live_action in [:new, :edit]}
+  :if={@live_action in [:new]}
   id="log_entry-modal"
   show
   on_cancel={JS.patch(~p"/log_entries")}

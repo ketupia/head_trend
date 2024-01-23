@@ -77,7 +77,6 @@ defmodule HeadTrendWeb.Router do
 
       live "/log_entries", LogEntryLive.Index, :index
       live "/log_entries/new", LogEntryLive.Index, :new
-      live "/log_entries/:id/edit", LogEntryLive.Index, :edit
 
       live "/log_entries/:id", LogEntryLive.Show, :show
       live "/log_entries/:id/show/edit", LogEntryLive.Show, :edit
