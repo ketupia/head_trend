@@ -33,6 +33,7 @@ defmodule HeadTrend.MixProject do
   defp deps do
     [
       {:dns_cluster, "~> 0.1"},
+      {:ecto_psql_extras, "~> 0.7"},
       {:ecto_sql, "~> 3.10"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:finch, "~> 0.13"},

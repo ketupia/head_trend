@@ -58,7 +58,7 @@ defmodule HeadTrendWeb.LogEntryLive.LogEntryComponents do
         </div>
         
         <.link
-          patch={~p"/log_entries/#{@log_entry}/edit"}
+          patch={~p"/log_entries/#{@log_entry}/show/edit"}
           class="hover:text-brand hover:underline hover:underline-offset-4"
         >
           Edit
@@ -121,7 +121,7 @@ defmodule HeadTrendWeb.LogEntryLive.LogEntryComponents do
           </div>
           
           <.link
-            patch={~p"/log_entries/#{log_entry}/edit"}
+            patch={~p"/log_entries/#{log_entry}/show/edit"}
             class="hover:text-brand hover:underline hover:underline-offset-4"
           >
             Edit

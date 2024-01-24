@@ -88,6 +88,8 @@ defmodule HeadTrendWeb.Router do
 
     delete "/users/log_out", UserSessionController, :delete
 
+    live "/functional_layouts", FunctionalLayouts
+
     live_session :current_user,
       on_mount: [
         {HeadTrendWeb.UserAuth, :mount_current_user},
