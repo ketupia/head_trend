@@ -10,7 +10,7 @@ config :pbkdf2_elixir, :rounds, 1
 # Run `mix help test` for more information.
 config :head_trend, HeadTrend.Repo,
   username: "postgres",
-  password: "Centrin0",
+  password: "postgres",
   hostname: "localhost",
   database: "head_trend_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,

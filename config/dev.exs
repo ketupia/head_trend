@@ -3,7 +3,7 @@ import Config
 # Configure your database
 config :head_trend, HeadTrend.Repo,
   username: "postgres",
-  password: "Centrin0",
+  password: "postgres",
   hostname: "localhost",
   database: "head_trend_dev",
   stacktrace: true,
